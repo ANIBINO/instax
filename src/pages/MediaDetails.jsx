@@ -14,6 +14,8 @@ import {
   Divider,
   Button,
   Container,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -32,6 +34,11 @@ const MediaDetails = () => {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(0);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   useEffect(() => {
     const loadMedia = async () => {
@@ -71,6 +78,69 @@ const MediaDetails = () => {
       default:
         return "#607D8B";
     }
+  };
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: media?.title || "Check out this media",
+          text: media?.description || "Check out this amazing media content!",
+          url: window.location.href,
+        });
+        setSnackbar({
+          open: true,
+          message: "Shared successfully!",
+          severity: "success",
+        });
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        await navigator.clipboard.writeText(window.location.href);
+        setSnackbar({
+          open: true,
+          message: "Link copied to clipboard!",
+          severity: "success",
+        });
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to share. Please try again.",
+        severity: "error",
+      });
+    }
+  };
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(media?.url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = media?.title || "download";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setSnackbar({
+        open: true,
+        message: "Download started!",
+        severity: "success",
+      });
+    } catch (error) {
+      console.error("Error downloading:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to download. Please try again.",
+        severity: "error",
+      });
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -146,7 +216,7 @@ const MediaDetails = () => {
           <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
             <Grid container spacing={3}>
               {/* Media Content */}
-              <Grid item xs={12} md={8}>
+              <Grid size={{xs: 12, md: 8}}>
                 {loading ? (
                   <Skeleton variant="rectangular" width="100%" height={400} />
                 ) : (
@@ -191,7 +261,7 @@ const MediaDetails = () => {
               </Grid>
 
               {/* Media Info */}
-              <Grid item xs={12} md={4}>
+              <Grid size={{xs: 12, md: 4}}>
                 <Box sx={{ height: "100%" }}>
                   {loading ? (
                     <>
@@ -263,6 +333,7 @@ const MediaDetails = () => {
                         <Button
                           variant="outlined"
                           startIcon={<ShareIcon />}
+                          onClick={handleShare}
                           sx={{ borderRadius: "30px", flex: 1 }}
                         >
                           Share
@@ -270,6 +341,7 @@ const MediaDetails = () => {
                         <Button
                           variant="outlined"
                           startIcon={<DownloadIcon />}
+                          onClick={handleDownload}
                           sx={{ borderRadius: "30px", flex: 1 }}
                         >
                           Download
@@ -451,6 +523,21 @@ const MediaDetails = () => {
           </Box>
         </Paper>
       </Container>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

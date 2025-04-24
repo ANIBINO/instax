@@ -126,7 +126,7 @@ const Header = () => {
               textDecoration: "none",
               fontWeight: "bold",
               letterSpacing: "2px",
-              border: "1px solid rgba(255,255,255,0.3)",
+              border: "1px dotted rgba(255,255,255,0.3)",
               padding: "8px 16px",
               borderRadius: "8px",
               fontSize: { xs: "1rem", sm: "1.5rem" },
@@ -137,7 +137,7 @@ const Header = () => {
               },
             }}
           >
-            ELVCO
+            INSTAX
           </Typography>
 
           {/* Mobile Menu Button */}
